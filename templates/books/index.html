@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Index {% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="input-group flex-nowrap pt-4 pb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="addon-wrapping">Search</span>
+      </div>
+      <input type="text" class="form-control" autocomplete="off" autofocus placeholder="search by ISBN number, title, author or year of a book.">
+    </div>
+    <div id="books" >
+    
+    </div>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='books.js') }}"></script>
+    <script>
+
+      let input = document.querySelector('input');
+      input.onkeyup = function() {
+          let html = '';
+
+          if (input.value == '')
+          {
+            for (data of books)
+            {
+              html += '<article class="post"><header><div>';
+              html += '<a href="/' + data[0] + '/details"><h1>' + data[2] + '</h1></a>';
+              html += '<div class="about">by ' + data[1] + ' in the year ' + data[3] + '</div>';
+              html += '</div><p>ISBN: ' + data[0] + '</p>';
+              html += '</header></article><hr>';
+            }
+          }
+          else
+          {
+            for (book of books)
+            {
+              for (data of book)
+              {
+                if (data.toLowerCase().includes(input.value.toLowerCase()))
+                {
+                  html += '<article class="post"><header><div>';
+                  html += '<a href="/' + book[0] + '/details"><h1>' + book[2] + '</h1></a>';
+                  html += '<div class="about">by ' + book[1] + ' in the year ' + book[3] + '</div>';
+                  html += '</div><p>ISBN: ' + book[0] + '</p>';
+                  html += '</header></article><hr>';
+                  break;
+                }
+              }
+            }
+          }
+          document.querySelector('div#books').innerHTML = html;
+      }
+
+      $(window).load(function(){
+          $(input).keyup()
+      });
+    </script>
+
+{% endblock %}

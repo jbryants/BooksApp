@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Details {% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <article class="post">
+        <header>
+            <div>
+                <h1 style="font-size: 250%;">{{ book.title }}</h1>
+                <div class="about" style="font-size: 150%;">by {{ book.author }} in the year {{ book.year }} </div>
+            </div>
+            <p style="font-size: 150%;">ISBN: {{ book.isbn }}</p>
+        </header>
+    </article>
+
+
+    <h5 class="pt-3">Goodreads ratings: {{ avg_ratings_gr }} out of 5 ({{ "{:,.0f}".format(ratings_count_gr) }} users)</h5>
+    <h5 id="bappRatings" class="pb-3">BooksApp ratings: {{ avg_ratings_bapp }} out of 5 ({{ "{:,.0f}".format(ratings_count_bapp) }} users)</h5>
+
+
+    <div id="review-cards">
+        {% for username, rating, remRating, review in reviews %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title {{ colArr[range(1, 5) | random ] }}">{{ username }}</h5>
+                    <h6> <span style="color: #09f"> {% for i in range(rating) %}★ {% endfor %}</span>{% for i in range(remRating) %}★ {% endfor %}</h6>
+                    {{ review }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if not user_reviewed %}
+        <div id="setRatings&ReviewDiv">
+            <h4 class="pt-5 text-primary">Rate and review this book :- </h4>
+            <div style="display:inline-block;"><h5>  Ratings: </h5></div>
+            <div style="display:inline-block;">
+            <form id="rateAndReview" class="rating">
+                <label>
+                    <input type="radio" name="stars" value="1" />
+                    <span class="icon">★</span>
+                </label>
+                <label>
+                    <input type="radio" name="stars" value="2" />
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                </label>
+                <label>
+                    <input type="radio" name="stars" value="3" />
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>   
+                </label>
+                <label>
+                    <input type="radio" name="stars" value="4" />
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                </label>
+                <label>
+                    <input type="radio" name="stars" value="5" />
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                    <span class="icon">★</span>
+                </label>
+            </div>
+            
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                    <span class="input-group-text">Review: </span>
+                    </div>
+                    <textarea class="form-control" aria-label="With textarea" name="review" rows="1"></textarea>
+                </div>
+
+                <input type="hidden" name="isbn" value="{{ book.isbn }}" />
+
+                <div class="pt-4 d-flex justify-content-center"> 
+                    <button type="submit" class="btn btn-success">Submit</button>
+                </div>
+
+            </form>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script>
+
+            let rateAndReview = document.getElementById("setRatings&ReviewDiv");
+
+            let bappR = document.getElementById("bappRatings");
+            var p = document.getElementById("review-cards");
+            let colArr = ["text-primary", "text-success", "text-danger", "text-warning", "text-info"];
+
+            function appendReview(username, ratings, review)
+            {
+                var newReviewElement = document.createElement('div');
+                newReviewElement.setAttribute('class', 'card');
+
+                let html = '';
+                let randCol = colArr[Math.floor(Math.random() * colArr.length)]
+
+                html += '<div class="card-body">';
+                html += '<h5 class="card-title ' + randCol + '" >';
+                html += username + '</h5>';
+                html += '<h6> <span style="color: #09f"> ' + '★ '.repeat(ratings) + '</span>';
+                html += '★ '.repeat(5 - ratings) + '</h6>';
+                html += review + '</div>';
+
+                newReviewElement.innerHTML = html;
+                p.appendChild(newReviewElement);
+            }
+
+            // this is the id of the form
+            $("#rateAndReview").submit(function(e) {
+
+            e.preventDefault();             // avoid to execute the actual submit of the form.
+
+            var form = $(this);
+            formData = form.serializeArray();
+
+            $.ajax({
+                type: "POST",
+                url: "/set_ratings",
+                data: form.serialize(),     // serializes the form's elements.
+                success: function(respData)
+                {
+                    let ratings = formData[0]["value"];
+                    let review = formData[1]["value"];
+                    
+                    console.log(respData);
+                    console.log(respData["avg_rating"]);
+                    console.log(respData["count"]);
+
+                    // update bappRatings
+                    bappR.innerHTML = `BooksApp ratings: ${respData['avg_rating']} out of 5 (${respData['count']} users)`;
+
+                    // update reviews
+                    rateAndReview.parentNode.removeChild(rateAndReview);
+                    appendReview("{{ session['uname'] }}", ratings, review);
+                }
+                });
+            });
+
+        </script>
+    {% endif %}
+{% endblock %}
