@@ -11,4 +11,4 @@ Once they log in, they will be able to search for books, leave reviews for indiv
 There are also ratings provided by Goodreads website accessed via their API.
 Finally, users will be able to query for book details and book reviews programmatically via the website’s API.
 
-A video demo of the project:-
+A video demo of the project -> https://youtu.be/XNGYUxqZtT0
